@@ -5,27 +5,16 @@ class GalleryViewController: UIViewController {
   
   @IBOutlet weak var galleryCollectionView: UICollectionView!
   
-  private var gallery: [Picture] = []
-  private var galleryImages: [UIImage?] = []
+  private var savedGallery: [Picture] = []
+  private var savedGalleryImages: [UIImage] = []
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    self.loadGallery()
   }
   
-  func loadGallery () {
-    if let savedPictures = UserDefaults.standard.value([Picture].self, forKey: "gallery") {
-      gallery = savedPictures
-      galleryImages = Array(repeating: nil, count: savedPictures.count)
-      print(savedPictures)
-      for (i, picture) in gallery.enumerated() {
-        print(picture.fileName)
-        let image = loadImage(fileName: picture.fileName)
-        galleryImages[i] = image
-      }
-      
-      galleryCollectionView.reloadData()
-    }
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    loadGallery()
   }
   
   @IBAction func onNavigateToAddImage(_ sender: UIButton) {
@@ -33,36 +22,41 @@ class GalleryViewController: UIViewController {
       return
     }
     self.navigationController?.pushViewController(mainViewController, animated: true)
+    mainViewController.savedGallery = savedGallery
   }
   
   @IBAction func onGoBack(_ sender: UIButton) {
     self.navigationController?.popViewController(animated: true)
   }
   
-  func navigateToPictureView (picture: Picture) {
-    guard let pictureViewController = self.storyboard?.instantiateViewController(withIdentifier: "PictureViewController") as? PictureViewController else {
-      return
+  func loadGallery () {
+    if let savedPictures = UserDefaults.standard.value([Picture].self, forKey: "gallery") {
+      savedGallery = savedPictures
+      savedGalleryImages = Array(repeating: UIImage(), count: savedPictures.count)
+      for (i, picture) in savedGallery.enumerated() {
+        if let image = loadImage(fileName: picture.fileName) {
+          savedGalleryImages[i] = image
+        }
+      }
+      
+      
+      galleryCollectionView.reloadData()
     }
-    pictureViewController.picture = picture
-    self.navigationController?.pushViewController(pictureViewController, animated: true)
   }
-  
 }
 
 extension GalleryViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
   func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    return galleryImages.count
+    return savedGalleryImages.count
   }
   
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GalleryItemCollectionViewCell.identifier, for: indexPath) as? GalleryItemCollectionViewCell else {
       return UICollectionViewCell()
     }
-    
-    if let picture = self.galleryImages[indexPath.row] {
-      
-      cell.configure(with: self.gallery[indexPath.item], pictureImage: picture, navigateToPictureView: self.navigateToPictureView)
-    }
+
+    cell.configure(with: savedGallery[indexPath.item], pictureImage: savedGalleryImages[indexPath.row], index: indexPath.item, 
+                   delegate: self )
 
     return cell
   }
@@ -71,6 +65,17 @@ extension GalleryViewController: UICollectionViewDelegate, UICollectionViewDataS
     let sideSize = (collectionView.frame.size.width - 20)/2
     return CGSize(width: sideSize, height: sideSize)
   }
-  
-  
+}
+
+extension GalleryViewController: GalleryItemCollectionViewCellDelegate {
+  func navigateToPictureViewController(index: Int) {
+    print("navigate from gallery \(index)")
+    guard let pictureViewController = self.storyboard?.instantiateViewController(withIdentifier: "PictureViewController") as? PictureViewController else {
+      return
+    }
+    pictureViewController.savedGallery = savedGallery
+    pictureViewController.savedGalleryImages = savedGalleryImages
+    pictureViewController.selectedIndex = index
+    self.navigationController?.pushViewController(pictureViewController, animated: true)
+  }
 }

@@ -1,27 +1,38 @@
 
 import UIKit
 
+protocol GalleryItemCollectionViewCellDelegate: AnyObject {
+  func navigateToPictureViewController (index: Int) -> Void
+}
+
 class GalleryItemCollectionViewCell: UICollectionViewCell {
   
   @IBOutlet weak var galleryImage: UIImageView!
   var picture: Picture?
-  var navigateToPictureView: ((_: Picture) -> Void)?;
-  static var identifier = "GalleryItemCollectionViewCell"
-    
-  func configure(with object: Picture, pictureImage: UIImage, navigateToPictureView: @escaping (_: Picture) -> Void) {
+  var pictureImage: UIImage?
+  var index: Int?
+  weak var delegate: GalleryItemCollectionViewCellDelegate?
+  static let identifier =  "GalleryItemCollectionViewCell"
+
+  @IBOutlet weak var buttonViewPicture: UIButton!
+  
+  func configure(with object: Picture, pictureImage: UIImage, index: Int, delegate: GalleryItemCollectionViewCellDelegate) {
     galleryImage.image = pictureImage
     
     let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(onTap(_:)))
     galleryImage.addGestureRecognizer(tapRecognizer)
     
     self.picture = object
-    self.navigateToPictureView = navigateToPictureView
+    self.delegate = delegate
+    self.pictureImage = pictureImage
+    self.index = index
   }
   
-  @IBAction func onTap(_ sender: UITapGestureRecognizer) {
-    if let picture = self.picture as Picture?, let navigateToPictureView = self.navigateToPictureView {
-      navigateToPictureView(picture)
+  @objc func onTap(_ sender: UITapGestureRecognizer) {
+    guard let index = self.index else {
+      return
     }
+    print("navigate \(index)")
+    delegate?.navigateToPictureViewController(index: index)
   }
-
 }

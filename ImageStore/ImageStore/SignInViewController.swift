@@ -49,10 +49,14 @@ extension SignInViewController: UITextFieldDelegate {
   
   public func textFieldShouldReturn(_ textField: UITextField) -> Bool {
     if let password = textField.text {
-      if password == self.password {
+      if !isRegister && password == self.password {
         self.goToGallery()
       }
-      UserDefaults.standard.set(password, forKey: "password")
+      if isRegister {
+        UserDefaults.standard.set(password, forKey: "password")
+        self.goToGallery()
+      }
+      
     }
     self.view.endEditing(true)
     return true

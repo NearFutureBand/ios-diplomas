@@ -1,27 +1,31 @@
 import UIKit
 
-class MainViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITextFieldDelegate {
-  
-  var images: [UIImage] = []
-  var gallery: [Picture] = []
+class MainViewController: UIViewController {
+  var savedGallery: [Picture]? = nil
   let commentHeight: CGFloat = 50
   
   @IBOutlet weak var imageView: UIImageView!
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    self.loadGallery()
   }
   
-  func loadGallery () {
-    if let galleryItems = UserDefaults.standard.value([Picture].self, forKey: "gallery") {
-      
-      self.gallery = galleryItems
-    }
+  @IBAction func onGoBack(_ sender: UIButton) {
+    goBack()
   }
+  
   
   @IBAction func onAddImagePress(_ sender: Any) {
     showPickerAlert()
+  }
+  
+  func showImagePicker(sourceType: UIImagePickerController.SourceType) {
+    let imagePicker = UIImagePickerController()
+    imagePicker.delegate = self
+    imagePicker.allowsEditing = true
+    imagePicker.sourceType = sourceType
+    imagePicker.modalPresentationStyle = .overCurrentContext
+    self.present(imagePicker, animated: true, completion: nil)
   }
   
   func showPickerAlert() {
@@ -40,6 +44,22 @@ class MainViewController: UIViewController, UIImagePickerControllerDelegate, UIN
     self.present(alert, animated: true, completion: nil)
   }
   
+  func createGalleryItem (fileName: String) {
+    let newPicture = Picture(name: "Name", about: "About", date: Date(), fileName: fileName)
+    if var savedGallery = self.savedGallery {
+      savedGallery.append(newPicture)
+      UserDefaults.standard.set(encodable: savedGallery, forKey: "gallery")
+    }
+    self.navigationController?.popViewController(animated: true)
+  }
+  
+  func goBack () {
+    self.navigationController?.popViewController(animated: true)
+  }
+}
+
+extension MainViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITextFieldDelegate {
+  
   func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
     
     if let image = info[UIImagePickerController.InfoKey.editedImage] as? UIImage {
@@ -56,33 +76,10 @@ class MainViewController: UIViewController, UIImagePickerControllerDelegate, UIN
       self.imageView.image = image
       createGalleryItem(fileName: fileName)
     }
-    
-    
     picker.dismiss(animated: true, completion: nil)
-  }
-  
-  func createGalleryItem (fileName: String) {
-    let obj = Picture(name: "Name", about: "About", date: Date(), fileName: fileName)
-    
-    self.gallery.append(obj)
-    
-    UserDefaults.standard.set(encodable: self.gallery, forKey: "gallery")
   }
   
   func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
     picker.dismiss(animated: true, completion: nil)
-  }
-  
-  func showImagePicker(sourceType: UIImagePickerController.SourceType) {
-    let imagePicker = UIImagePickerController()
-    imagePicker.delegate = self
-    imagePicker.allowsEditing = true
-    imagePicker.sourceType = sourceType
-    imagePicker.modalPresentationStyle = .overCurrentContext
-    self.present(imagePicker, animated: true, completion: nil)
-  }
-  
-  @IBAction func onGoBack(_ sender: UIButton) {
-    self.navigationController?.popViewController(animated: true)
   }
 }
