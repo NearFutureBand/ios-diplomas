@@ -8,7 +8,6 @@ class PictureViewController: UIViewController {
   var savedGalleryImages: [UIImage]?
   var selectedIndex: Int? {
     didSet {
-      print(selectedIndex)
       setImage()
     }
   }

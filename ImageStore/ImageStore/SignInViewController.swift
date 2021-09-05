@@ -4,8 +4,10 @@ class SignInViewController: UIViewController {
   
   @IBOutlet weak var passwordTextField: UITextField!
   @IBOutlet weak var greetingLabel: UILabel!
+  @IBOutlet weak var mainLabelView: UILabel!
   
-  private var password: String? = "123"
+  private var savedPassword: String? = "123"
+  private var typedPassword: String = ""
   private var isRegister = true {
     didSet {
       greetingLabel.text = isRegister ? "Please, create new password" : "Welcome back!"
@@ -18,13 +20,11 @@ class SignInViewController: UIViewController {
     greetingLabel.text = isRegister ? "Please, create new password" : "Welcome back!"
     
     if let savedPassword = UserDefaults.standard.value(forKey: "password") as? String {
-      print(savedPassword)
-      self.password = savedPassword
+      self.savedPassword = savedPassword
       self.isRegister = false
       return
     }
   }
-  
 
   func goToGallery () {
     guard let galleryViewController = self.storyboard?.instantiateViewController(withIdentifier: "GalleryViewController") as? GalleryViewController else {
@@ -33,32 +33,39 @@ class SignInViewController: UIViewController {
     self.navigationController?.pushViewController(galleryViewController, animated: true)
   }
   
-  func goToAddImageScreen () {
-    guard let mainViewController = self.storyboard?.instantiateViewController(withIdentifier: "MainViewController") as? MainViewController else {
-      return
-    }
-    self.navigationController?.pushViewController(mainViewController, animated: true)
+  @IBAction func onSignInPress(_ sender: UIButton) {
+    validatePassword(passwordToCheck: typedPassword)
   }
   
-  @IBAction func onSignInPress(_ sender: UIButton) {
-    self.goToAddImageScreen()
+  func validatePassword(passwordToCheck: String) {
+    if !isRegister && passwordToCheck == savedPassword {
+      self.goToGallery()
+    }
+    
+    if isRegister {
+      UserDefaults.standard.set(passwordToCheck, forKey: "password")
+      self.goToGallery()
+    }
+  }
+  
+  override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+    self.view.endEditing(true)
   }
 }
 
 extension SignInViewController: UITextFieldDelegate {
   
   public func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-    if let password = textField.text {
-      if !isRegister && password == self.password {
-        self.goToGallery()
-      }
-      if isRegister {
-        UserDefaults.standard.set(password, forKey: "password")
-        self.goToGallery()
-      }
-      
+    if let typedPassword = textField.text {
+      validatePassword(passwordToCheck: typedPassword)
     }
     self.view.endEditing(true)
     return true
+  }
+  
+  public func textFieldDidEndEditing(_ textField: UITextField) {
+    if let password = textField.text {
+      typedPassword = password
+    }
   }
 }

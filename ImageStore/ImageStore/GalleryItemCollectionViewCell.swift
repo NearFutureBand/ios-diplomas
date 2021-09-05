@@ -32,7 +32,6 @@ class GalleryItemCollectionViewCell: UICollectionViewCell {
     guard let index = self.index else {
       return
     }
-    print("navigate \(index)")
     delegate?.navigateToPictureViewController(index: index)
   }
 }

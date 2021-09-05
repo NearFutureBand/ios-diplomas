@@ -25,10 +25,6 @@ class GalleryViewController: UIViewController {
     mainViewController.savedGallery = savedGallery
   }
   
-  @IBAction func onGoBack(_ sender: UIButton) {
-    self.navigationController?.popViewController(animated: true)
-  }
-  
   func loadGallery () {
     if let savedPictures = UserDefaults.standard.value([Picture].self, forKey: "gallery") {
       savedGallery = savedPictures
@@ -38,8 +34,6 @@ class GalleryViewController: UIViewController {
           savedGalleryImages[i] = image
         }
       }
-      
-      
       galleryCollectionView.reloadData()
     }
   }
@@ -54,22 +48,25 @@ extension GalleryViewController: UICollectionViewDelegate, UICollectionViewDataS
     guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GalleryItemCollectionViewCell.identifier, for: indexPath) as? GalleryItemCollectionViewCell else {
       return UICollectionViewCell()
     }
-
+    
     cell.configure(with: savedGallery[indexPath.item], pictureImage: savedGalleryImages[indexPath.row], index: indexPath.item, 
                    delegate: self )
-
+    
     return cell
   }
   
   func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-    let sideSize = (collectionView.frame.size.width - 20)/2
+    let sideSize = (collectionView.frame.size.width - 10) / 2
     return CGSize(width: sideSize, height: sideSize)
   }
+  
+//  func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+//    return UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+//  }
 }
 
 extension GalleryViewController: GalleryItemCollectionViewCellDelegate {
   func navigateToPictureViewController(index: Int) {
-    print("navigate from gallery \(index)")
     guard let pictureViewController = self.storyboard?.instantiateViewController(withIdentifier: "PictureViewController") as? PictureViewController else {
       return
     }

@@ -3,6 +3,7 @@ import Foundation
 import UIKit
 
 extension UIViewController {
+  
   func saveImage(image: UIImage) -> String? {
     guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return nil}
     
